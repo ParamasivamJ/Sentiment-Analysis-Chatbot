@@ -8,10 +8,8 @@ import torch
 import warnings
 from transformers import pipeline
 
-# Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Define models and model paths
 model_name_chat = "togethercomputer/RedPajama-INCITE-Chat-3B-v1"
 model_name_sentiment = "distilbert-base-uncased-finetuned-sst-2-english"
 
@@ -19,15 +17,14 @@ model_name_sentiment = "distilbert-base-uncased-finetuned-sst-2-english"
 ov_model_chat = OVModelForCausalLM.from_pretrained(model_name_chat, export=True, compile=False)
 ov_model_sentiment = OVModelForSequenceClassification.from_pretrained(model_name_sentiment, export=True, compile=False)
 
-# Load tokenizers
+# tokenizers
 ov_model_chat_tok = AutoTokenizer.from_pretrained(model_name_chat, trust_remote_code=False)
 ov_model_sentiment_tok = AutoTokenizer.from_pretrained(model_name_sentiment, trust_remote_code=False)
 
-# Apply dynamic padding for better performance
+# dynamic padding for better performance
 data_collator_chat = DataCollatorWithPadding(tokenizer=ov_model_chat_tok, padding="longest")
 data_collator_sentiment = DataCollatorWithPadding(tokenizer=ov_model_sentiment_tok, padding="longest")
 
-# Check if quantized models exist, otherwise quantize
 quantized_model_chat_path = "model/model_chat/quantized"
 quantized_model_sentiment_path = "model/model_sentiment/quantized"
 
@@ -39,7 +36,7 @@ if not os.path.exists(quantized_model_sentiment_path):
     quantizer_sentiment = OVQuantizer.from_pretrained(ov_model_sentiment)
     quantized_model_sentiment = quantizer_sentiment.quantize(export=True, optimization_config={"approach": "dynamic"}, save_directory="model/model_sentiment")
 
-# Reload quantized models for performance
+# Reload quantized models
 ov_model_chat = OVModelForCausalLM.from_pretrained(quantized_model_chat_path, device="CPU")
 ov_model_sentiment = OVModelForSequenceClassification.from_pretrained(quantized_model_sentiment_path, device="CPU")
 
