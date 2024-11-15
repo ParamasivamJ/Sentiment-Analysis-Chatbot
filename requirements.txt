@@ -1,0 +1,7 @@
+openvino
+gradio
+transformers
+optimum
+optimum[openvino]
+torch
+uuid
